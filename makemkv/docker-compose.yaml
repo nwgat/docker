@@ -1,7 +1,7 @@
 services:
   makemkv:
     build: .
-    image: makemkv:1.18.2
+    image: makemkv:1.18.3
     container_name: makemkv
     # Keeps container running so you can exec commands
     command: tail -f /dev/null
