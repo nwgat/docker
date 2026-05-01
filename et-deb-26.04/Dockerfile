@@ -1,8 +1,8 @@
-FROM ubuntu:26.04
+# STAGE 1: Build the package
+FROM ubuntu:26.04 AS builder
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install dependencies
 RUN apt-get update && apt-get install -y \
     build-essential \
     cmake \
@@ -20,11 +20,9 @@ RUN apt-get update && apt-get install -y \
     zlib1g-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Clone ET
 WORKDIR /src
 RUN git clone --recurse-submodules https://github.com/MisterTea/EternalTerminal.git
 
-# Build and Pack
 WORKDIR /src/EternalTerminal/build
 RUN cmake -G "Unix Makefiles" \
     -DCMAKE_BUILD_TYPE=Release \
@@ -33,3 +31,8 @@ RUN cmake -G "Unix Makefiles" \
     .. && \
     make -j$(nproc) && \
     cpack
+
+# STAGE 2: Export only the .deb
+# We use 'scratch' because it's an empty, zero-byte image
+FROM scratch AS export
+COPY --from=builder /src/EternalTerminal/build/*.deb /
